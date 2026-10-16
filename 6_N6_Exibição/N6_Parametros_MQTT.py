@@ -188,12 +188,12 @@ entry_porta_mqtt.grid(row=1, column=1, sticky="w", padx=5, pady=2)
 
 tk.Label(frame_mqtt, text="Tópico DL:").grid(row=2, column=0, sticky="w", padx=5, pady=2)
 entry_topico_dl = tk.Entry(frame_mqtt, width=30)
-entry_topico_dl.insert(0, "mot_lora_mqtt_AAF/gateway/downlink")
+entry_topico_dl.insert(0, "mot_mqtt_SEU_RA/N2/DL")
 entry_topico_dl.grid(row=2, column=1, padx=5, pady=2)
 
 tk.Label(frame_mqtt, text="Tópico UL:").grid(row=3, column=0, sticky="w", padx=5, pady=2)
 entry_topico_ul = tk.Entry(frame_mqtt, width=30)
-entry_topico_ul.insert(0, "mot_lora_mqtt_AAF/gateway/uplink")
+entry_topico_ul.insert(0, "mot_mqtt_SEU_RA/N2/UL")
 entry_topico_ul.grid(row=3, column=1, padx=5, pady=2)
 
 var_qos = tk.BooleanVar(value=False)
@@ -246,7 +246,15 @@ tk.Label(frame_status, text="Status enviado: ", font=("Arial", 9)).pack(side="le
 lbl_status_val = tk.Label(frame_status, text="AGUARDANDO COMANDO", font=("Arial", 9, "bold"), fg="gray")
 lbl_status_val.pack(side="left", padx=5)
 
+
+# ===================== BOTÕES / AÇÕES =====================
+def fechar():
+    if messagebox.askokcancel("Sair", "Deseja fechar o parametrizador?"):
+        btn_parar()        
+        root.destroy()
+
 # Inicializa o estado visual correto dos campos
 alternar_modo_conexao()
 
+root.protocol("WM_DELETE_WINDOW", fechar)
 root.mainloop()

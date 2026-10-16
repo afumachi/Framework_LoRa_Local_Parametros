@@ -14,8 +14,8 @@
 
 // Escolha o modo de conexão do seu Gateway com a Borda N3 S-IoT
 // Deixe sem comentário "//" a linha de conexão do Gateway e comente a outra "//"
-//#define Gateway_Serial
-#define Gateway_MQTT
+#define Gateway_Serial
+//#define Gateway_MQTT
 
 //=======================================================================
 //                     1 - Bibliotecas
@@ -44,9 +44,12 @@
 // Configurações do Broker HiveMQ (Usando o broker público oficial)
 const char* MQTT_BROKER   = "broker.hivemq.com";
 
+// Configurações do Broker TpM (Usando o broker TpM oficial)
+//const char* MQTT_BROKER   = "www.tpm.dev.com";
+
 const int   MQTT_PORT     = 1883;
-const char* TOPIC_DL      = "mot_mqtt_AAF/gateway/downlink";  // Python → ESP32
-const char* TOPIC_UL      = "mot_mqtt_AAF/gateway/uplink";    // ESP32  → Python
+const char* TOPIC_DL      = "mot_mqtt_SEU_RA/N2/DL";  // Python → ESP32
+const char* TOPIC_UL      = "mot_mqtt_SEU_RA/N2/UL";    // ESP32  → Python
 String CLIENT_ID ;         // ID único no broker através do Endereço MAC do ESP32
 
 // QoS usado nos dois sentidos (DL e UL). QoS1 = "at least once": o broker
