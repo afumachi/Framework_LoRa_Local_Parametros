@@ -42,10 +42,11 @@ void Phy_mqtt_receive_DL() {
 //O pacote DL recebido pela serial proveniente do Nível 3 é enviado para o RF95
 void Phy_radio_send_DL() {
 
+  digitalWrite(LED_VERMELHO_PIN, HIGH);  
   LoRa.beginPacket();                   // start packet
   for (int i = 0; i < Tamanho_pacote; i++) {
     LoRa.write(PacoteDL[i]);            // add data to packet
-    digitalWrite(LED_VERMELHO_PIN, HIGH);  
+
   }
   LoRa.endPacket();                     // finish packet and send it
  
@@ -53,7 +54,7 @@ void Phy_radio_send_DL() {
   
   delay(20);                            
   digitalWrite(LED_VERMELHO_PIN, LOW);   
- // }
+
 }
 
 //======================= RECEBE PACOTE UL LINK - PACODE VINDO NÓ SENSOR para o gateway===========================

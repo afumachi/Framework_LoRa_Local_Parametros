@@ -27,10 +27,39 @@
   #include <WiFi.h>
   #include <WiFiMulti.h>
   #include <MQTT.h>   // 256dpi/arduino-mqtt -- instalar via Library Manager: "MQTT" by 256dpi
+
+  // Instancia o objeto WiFiMulti
+  WiFiMulti wifiMulti;
+  // --- Objeto Wi-Fi ---
+  WiFiClient wifiClient;
+
+
+// =====================================================================
+//                     2 - Configurações MQTT
+// =====================================================================
+
+// Configurações do Broker Mosquitto (Usando o broker público oficial)
+//const char* MQTT_BROKER = "test.mosquitto.org";
+
+// Configurações do Broker HiveMQ (Usando o broker público oficial)
+const char* MQTT_BROKER   = "broker.hivemq.com";
+
+const int   MQTT_PORT     = 1883;
+const char* TOPIC_DL      = "mot_mqtt_AAF/gateway/downlink";  // Python → ESP32
+const char* TOPIC_UL      = "mot_mqtt_AAF/gateway/uplink";    // ESP32  → Python
+String CLIENT_ID ;         // ID único no broker através do Endereço MAC do ESP32
+
+// QoS usado nos dois sentidos (DL e UL). QoS1 = "at least once": o broker
+// confirma o recebimento (PUBACK) e a biblioteca retransmite se necessário.
+// Importante para o dado do cliente (luminosidade).
+const int MQTT_QOS = 1;
+
+// --- Objeto MQTT ---
+MQTTClient mqttClient(256);   // buffer de 256 bytes (read/write)
 #endif
 
 //=======================================================================
-//                     2 - Variáveis e Mapeamento
+//                     3 - Variáveis e Mapeamento
 //=======================================================================
 
 // ============= Pinagem na placa da PK-LoRa da ligação do RFM95 com o ESP32
@@ -89,46 +118,12 @@ byte PacoteUL[Tamanho_pacote];
 int ID_gateway;    // Variável com o ID_gateway que estará no pacote de DL byte 10
 
 #if defined(Gateway_MQTT)
-// =====================================================================
-//                     8 - Variáveis MQTT
-// =====================================================================
 
-// =====================================================================
-//                     2 - Configurações Wi-Fi
-// =====================================================================
-// Instancia o objeto WiFiMulti
-WiFiMulti wifiMulti;
-// --- Objeto Wi-Fi ---
-WiFiClient wifiClient;
+  // --- Buffer e flag para o pacote DL recebido via MQTT ---
+  volatile bool mqtt_dl_disponivel = false;
+  byte          mqtt_dl_payload[Tamanho_pacote];
 
-// =====================================================================
-//                     3 - Configurações MQTT
-// =====================================================================
-
-// Configurações do Broker Mosquitto (Usando o broker público oficial)
-//const char* MQTT_BROKER = "test.mosquitto.org";
-
-// Configurações do Broker HiveMQ (Usando o broker público oficial)
-const char* MQTT_BROKER   = "broker.hivemq.com";
-
-const int   MQTT_PORT     = 1883;
-const char* TOPIC_DL      = "mot_mqtt_AAF/gateway/downlink";  // Python → ESP32
-const char* TOPIC_UL      = "mot_mqtt_AAF/gateway/uplink";    // ESP32  → Python
-String CLIENT_ID ;         // ID único no broker através do Endereço MAC do ESP32
-
-// QoS usado nos dois sentidos (DL e UL). QoS1 = "at least once": o broker
-// confirma o recebimento (PUBACK) e a biblioteca retransmite se necessário.
-// Importante para o dado do cliente (luminosidade).
-const int MQTT_QOS = 1;
-
-// --- Objeto MQTT ---
-MQTTClient mqttClient(256);   // buffer de 256 bytes (read/write)
-
-// --- Buffer e flag para o pacote DL recebido via MQTT ---
-volatile bool mqtt_dl_disponivel = false;
-byte          mqtt_dl_payload[Tamanho_pacote];
 #endif
-
 //=======================================================================
 //                     3 - Setup de inicialização
 //=======================================================================
@@ -136,14 +131,7 @@ void setup() {
 
   //================= INICIALIZA SERIAL
   Serial.begin(115200);
-
-   // Define as funções como OUTPUT dos pinos dos LEDs
-  pinMode(LED_VERMELHO_PIN, OUTPUT);
-  pinMode(LED_VERDE_PIN, OUTPUT);
-  
-  // Garante que os LEDs iniciem desligados
-  digitalWrite(LED_VERMELHO_PIN, LOW);
-  digitalWrite(LED_VERDE_PIN, LOW);
+  delay(200);
 
 #if defined(Gateway_MQTT)
   // Cadastre quantas redes você quiser (SSID, Senha)
@@ -167,6 +155,25 @@ void setup() {
   Serial.print("Endereço IP: ");
   Serial.println(WiFi.localIP());
 #endif
+
+   // Define as funções como OUTPUT dos pinos dos LEDs
+  pinMode(LED_VERMELHO_PIN, OUTPUT);
+  pinMode(LED_VERDE_PIN, OUTPUT);
+  
+  // Garante que os LEDs iniciem desligados
+  digitalWrite(LED_VERMELHO_PIN, LOW);
+  digitalWrite(LED_VERDE_PIN, LOW);
+
+#if defined(Gateway_MQTT)
+    CLIENT_ID = "esp32_gateway+lora_" + String(WiFi.macAddress());
+    CLIENT_ID.replace(":", "");
+
+    // ---------- Inicia MQTT ----------
+    mqttClient.begin(MQTT_BROKER, MQTT_PORT, wifiClient);
+    mqttClient.onMessageAdvanced(mqtt_callback);
+    conectar_mqtt();
+#endif
+
 
   //-------------------- INICIALIZAÇÃO MÓDULO RF95
   #if defined(PKLoRa_ESP32)
