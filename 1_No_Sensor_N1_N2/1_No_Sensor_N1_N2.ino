@@ -4,6 +4,14 @@
 */
 
 //=======================================================================
+//                     0 - Módulo PKLoRa com ESP32 ou com ESP12E - Node-MCU
+//=======================================================================
+
+// Escolha qual o modelo do módulo de processamento de sua PKLoRa
+#define PKLoRa_ESP32
+//#define PKLoRa_ESP12E
+
+//=======================================================================
 //                     1 - Bibliotecas
 //=======================================================================
 #include <SPI.h> // A SPI é usada para conectar o ESP32 com o RFM95
@@ -12,8 +20,6 @@
 //=======================================================================
 //                     2 - Variáveis e Mapeamento
 //=======================================================================
-
-#define PKLoRa_ESP32
 
 // ============= Pinagem na placa da PK-LoRa da ligação do RFM95 com o ESP32
 #if defined(PKLoRa_ESP32)
@@ -37,9 +43,7 @@
 // Pino do botão
 #define BOTAO_PIN  39   // Pino do Botão - PIN VN
 
-#endif
-
-#if defined(PKLoRa_ESP12E)
+#elif defined(PKLoRa_ESP12E)
 
   // ============= Pinagem na placa da PK-LoRa da ligação do RFM95 com o Node-MCU
   #define SCK_PIN   14    // PIN D5
@@ -110,9 +114,11 @@ void setup() {
   pinMode(BOTAO_PIN, INPUT); 
 
   // --- Inicialização Módulo RF95 (LoRa) ---
-  
-  // 1. Remapeia e inicializa o barramento SPI com os pinos do seu Kit
-  SPI.begin(SCK_PIN, MISO_PIN, MOSI_PIN, NSS_PIN);
+  #if defined(PKLoRa_ESP32)
+
+    // 1. Remapeia e inicializa o barramento SPI com os pinos do seu Kit
+    SPI.begin(SCK_PIN, MISO_PIN, MOSI_PIN, NSS_PIN);
+  #endif
 
   // 2. Informa à biblioteca LoRa os pinos de controle
   LoRa.setPins(NSS_PIN, RST_PIN, DIO0_PIN);

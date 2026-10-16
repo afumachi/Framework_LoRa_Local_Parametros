@@ -1,14 +1,16 @@
 //======== CAMADA DE APLICAÇÃO DO NÓ SENSOR
 //====== COMANDOS
 void App_radio_receive_DL() {
-  // Acionamento do LED amarelo se o byte 34 está com valor 1
-  if (PacoteDL[16] == 1){
-    digitalWrite(LED_AMARELO_PIN, HIGH);
-  }
-  else{
-    digitalWrite(LED_AMARELO_PIN, LOW);
-  }
+  #if defined(PKLoRa_ESP32)
 
+    // Acionamento do LED amarelo se o byte 34 está com valor 1
+    if (PacoteDL[16] == 1){
+      digitalWrite(LED_AMARELO_PIN, HIGH);
+    }
+    else{
+      digitalWrite(LED_AMARELO_PIN, LOW);
+    }
+  #endif
 //=============== CHAMA DA APLICAÇÃO DE UL 
   App_radio_send_UL();  // Chama a função da camada de Aplicação de UL
 }
