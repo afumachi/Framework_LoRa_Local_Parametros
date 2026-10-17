@@ -90,6 +90,7 @@ int contador_pkt_DL = 0; // Variável para o contador de pacotes de DL
 int contador_pkt_UL = 0; // Variável para o contador de pacotes de UL
 
 int luminosidade; // Variável que vai receber o valor da luminosidade entre 0 e 4095 - ADC 12 bits
+bool liga_led_amarelo = 0;
 
 //=======================================================================
 //                     3 - Setup de inicialização

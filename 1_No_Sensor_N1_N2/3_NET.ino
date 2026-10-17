@@ -1,6 +1,6 @@
 // ====== CAMADA DE REDE DE DL
 void Net_radio_receive_DL() {
-  if(PacoteDL[8] == ID_sensor) {  // Checa se o pacote de DL é endereçado para o sensor com ID_Sensor correto
+  if(ID_sensor == PacoteDL[8]) {  // Checa se o pacote de DL é endereçado para o sensor com ID_Sensor correto
     ID_gateway = PacoteDL[10]; // O pacote de DL tem o endereço do gateway no byte 10
 
   //============== CHAMA A CAMADA DE TRANSPORTE DL

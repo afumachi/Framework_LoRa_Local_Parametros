@@ -1,7 +1,7 @@
-# Controle de Parâmetros e Execução | N6 | WissTek-IoT | Framework LoRa
+# Controle de Parâmetros e Execução | N6 | WissTek-IoT | Framework LoRa (Apenas MQTT)
 import tkinter as tk
 from tkinter import messagebox
-import serial.tools.list_ports
+from tkinter import ttk  # Importante: precisa importar o ttk para usar o Combobox
 import os
 
 # Caminho para salvamento dos parâmetros
@@ -10,36 +10,6 @@ CAMINHO_PARAMETROS = os.path.join(PASTA_ARMAZENAMENTO, "Parametros")
 os.makedirs(CAMINHO_PARAMETROS, exist_ok=True)
 ARQUIVO_PARAMETROS = os.path.join(CAMINHO_PARAMETROS, "PARAMETROS.txt")
 ARQUIVO_MQTT = os.path.join(CAMINHO_PARAMETROS, "MQTT.txt")
-
-def listar_portas_seriais():
-    portas = serial.tools.list_ports.comports()
-    lista = []
-    for p in portas:
-        lista.append(p.device)
-    return lista if lista else ["Nenhuma COM encontrada"]
-
-def alternar_modo_conexao():
-    modo = var_modo.get()
-    if modo == "Serial":
-        # Habilita serial, desabilita MQTT
-        menu_serial.config(state="normal")
-        btn_atualizar_portas.config(state="normal")
-        entry_broker.config(state="disabled")
-        entry_porta_mqtt.config(state="disabled")
-        entry_topico_dl.config(state="disabled")
-        entry_topico_ul.config(state="disabled")
-        chk_qos.config(state="disabled")
-        btn_config_mqtt.config(state="disabled")
-    else:
-        # Desabilita serial, habilita MQTT
-        menu_serial.config(state="disabled")
-        btn_atualizar_portas.config(state="disabled")
-        entry_broker.config(state="normal")
-        entry_porta_mqtt.config(state="normal")
-        entry_topico_dl.config(state="normal")
-        entry_topico_ul.config(state="normal")
-        chk_qos.config(state="normal")
-        btn_config_mqtt.config(state="normal")
 
 def configurar_mqtt():
     broker = entry_broker.get().strip()
@@ -65,14 +35,13 @@ def configurar_mqtt():
             f.write(f"{topico_dl}\n")
             f.write(f"{topico_ul}\n")
             f.write(f"{qos}\n")
-        messagebox.showinfo("Sucesso", "Configurações do MQTT salvas em MQTT.txt com sucesso!")
+        messagebox.showinfo("Sucesso", "Configurações do Framework MQTT salvas com sucesso!")
     except Exception as e:
         messagebox.showerror("Erro", f"Não foi possível salvar o arquivo MQTT.txt: {e}")
 
 def escrever_parametros(comando):
     tempo_str = entry_tempo.get().strip().replace(",", ".")
     medidas_str = entry_medidas.get().strip()
-    modo = var_modo.get()
 
     try:
         tempo = float(tempo_str)
@@ -88,29 +57,15 @@ def escrever_parametros(comando):
         messagebox.showerror("Erro", "O número de medidas deve ser um inteiro maior que zero!")
         return
 
-    if modo == "Serial":
-        porta_selecionada = combo_serial.get().strip()
-        if not porta_selecionada or "Nenhuma" in porta_selecionada:
-            messagebox.showerror("Erro", "Selecione uma porta serial válida para o Gateway!")
-            return
-        if porta_selecionada.upper().startswith("COM"):
-            num_serial = porta_selecionada.upper().replace("COM", "")
-        else:
-            num_serial = porta_selecionada
-        quinta_linha = num_serial
-    else:
-        # Modo MQTT habilitado (indica 1 na quinta linha)
-        # Garante que salva o MQTT.txt antes de iniciar se necessário
-        configurar_mqtt()
-        quinta_linha = "1"
-
+    # Garante que salva o MQTT.txt ao acionar comandos de controle
+    # configurar_mqtt()
+    num_serial = 12
     try:
         with open(ARQUIVO_PARAMETROS, "w") as f:
             f.write(f"{comando}\n")
             f.write(f"{medidas}\n")
             f.write(f"{tempo}\n")
-            f.write(f"0\n")  # Linha 4 reservada/compatibilidade
-            f.write(f"{quinta_linha}\n") # Quinta linha: 0 para Serial ou 1 para MQTT
+            f.write(f"{num_serial}\n")
         
         status_txt = {0: "PARADO", 1: "INICIADO / ATUALIZADO", 2: "PAUSADO"}
         lbl_status_val.config(text=status_txt[comando], fg="blue" if comando == 1 else ("orange" if comando == 2 else "red"))
@@ -128,11 +83,11 @@ def btn_parar():
 
 def btn_atualizar():
     escrever_parametros(1)
-    messagebox.showinfo("Atualização", "Parâmetros atualizados com sucesso para o teste em andamento!")
+    #messagebox.showinfo("Atualização", "Parâmetros atualizados com sucesso para o teste em andamento!")
 
 def set_short_distance():
     entry_tempo.delete(0, tk.END)
-    entry_tempo.insert(0, "1")
+    entry_tempo.insert(0, "1.5")
 
 def set_long_distance():
     entry_tempo.delete(0, tk.END)
@@ -140,80 +95,72 @@ def set_long_distance():
 
 # ================= INTERFACE GRÁFICA =================
 root = tk.Tk()
-root.title("FEE247 - LoRa - Parâmetros de Medidas")
-root.geometry("480x680")
+root.title("FEE247 - LoRa - Parâmetros de Medidas (MQTT)")
+root.geometry("480x500")
 root.resizable(False, False)
 
-tk.Label(root, text="Painel de Parâmetros de Medidas com LoRa", font=("Arial", 12, "bold")).pack(pady=10)
-
-# Seleção do Tipo de Conexão (Serial vs MQTT)
-frame_conexao = tk.LabelFrame(root, text=" 0. Seleção de Conexão do Gateway LoRa ", font=("Arial", 10, "bold"))
-frame_conexao.pack(fill="x", padx=15, pady=5)
-
-var_modo = tk.StringVar(value="Serial")
-tk.Radiobutton(frame_conexao, text="Serial", variable=var_modo, value="Serial", command=alternar_modo_conexao, font=("Arial", 9, "bold")).pack(side="left", padx=20, pady=5)
-tk.Radiobutton(frame_conexao, text="MQTT", variable=var_modo, value="MQTT", command=alternar_modo_conexao, font=("Arial", 9, "bold")).pack(side="left", padx=20, pady=5)
-
-# 1. Seleção da Porta Serial
-frame_serial = tk.LabelFrame(root, text=" 1. Porta Serial do Gateway ", font=("Arial", 10, "bold"))
-frame_serial.pack(fill="x", padx=15, pady=5)
-
-portas_disponiveis = listar_portas_seriais()
-combo_serial = tk.StringVar(root)
-combo_serial.set(portas_disponiveis[0])
-
-menu_serial = tk.OptionMenu(frame_serial, combo_serial, *portas_disponiveis)
-menu_serial.config(width=20)
-menu_serial.pack(side="left", padx=10, pady=8)
-
-btn_atualizar_portas = tk.Button(frame_serial, text="Atualizar Portas", command=lambda: [
-    menu_serial['menu'].delete(0, 'end'),
-    *[menu_serial['menu'].add_command(label=p, command=lambda val=p: combo_serial.set(val)) for p in listar_portas_seriais()]
-])
-btn_atualizar_portas.pack(side="right", padx=10)
+tk.Label(root, text="Painel de Parâmetros - Comunicação MQTT", font=("Arial", 12, "bold")).pack(pady=10)
 
 # Configurações do Broker MQTT
 frame_mqtt = tk.LabelFrame(root, text=" Configurações do Broker MQTT ", font=("Arial", 10, "bold"))
 frame_mqtt.pack(fill="x", padx=15, pady=5)
 
 tk.Label(frame_mqtt, text="URL do Broker:").grid(row=0, column=0, sticky="w", padx=5, pady=2)
+
+# Mantém a etiqueta lateral idêntica
+tk.Label(frame_mqtt, text="URL do Broker:").grid(row=0, column=0, sticky="w", padx=5, pady=2)
+
+# Lista com os seus servidores de exemplo
+lista_brokers = ["broker.hivemq.com", "test.mosquitto.org", "www.tpm.dev.br"]
+
+# Substitui o Entry antigo armazenando o Combobox diretamente na variável 'entry_broker'
+entry_broker = ttk.Combobox(frame_mqtt, width=28, values=lista_brokers)
+
+# Define "broker.hivemq.com" (índice 0) como o valor inicial padrão
+entry_broker.current(0)
+
+# Posiciona o componente exatamente no mesmo lugar
+entry_broker.grid(row=0, column=1, padx=5, pady=2)
+'''
 entry_broker = tk.Entry(frame_mqtt, width=30)
 entry_broker.insert(0, "broker.hivemq.com")
 entry_broker.grid(row=0, column=1, padx=5, pady=2)
+tk.Label(frame_mqtt, text="Exemplos:").grid(row=1, column=0, sticky="w", padx=5, pady=2)
+tk.Label(frame_mqtt, text="test.mosquitto.org").grid(row=1, column=1, sticky="w", padx=5, pady=2)
+tk.Label(frame_mqtt, text="broker.hivemq.com").grid(row=2, column=1, sticky="w", padx=5, pady=2)
+tk.Label(frame_mqtt, text="www.tpm.dev.com").grid(row=3, column=1, sticky="w", padx=5, pady=2)
+'''
 
-tk.Label(frame_mqtt, text="Porta MQTT:").grid(row=1, column=0, sticky="w", padx=5, pady=2)
+tk.Label(frame_mqtt, text="Porta MQTT:").grid(row=4, column=0, sticky="w", padx=5, pady=2)
 entry_porta_mqtt = tk.Entry(frame_mqtt, width=10)
 entry_porta_mqtt.insert(0, "1883")
-entry_porta_mqtt.grid(row=1, column=1, sticky="w", padx=5, pady=2)
+entry_porta_mqtt.grid(row=4, column=1, sticky="w", padx=5, pady=2)
 
-tk.Label(frame_mqtt, text="Tópico DL:").grid(row=2, column=0, sticky="w", padx=5, pady=2)
+tk.Label(frame_mqtt, text="Tópico DL:").grid(row=5, column=0, sticky="w", padx=5, pady=2)
 entry_topico_dl = tk.Entry(frame_mqtt, width=30)
 entry_topico_dl.insert(0, "mot_mqtt_SEU_RA/N2/DL")
-entry_topico_dl.grid(row=2, column=1, padx=5, pady=2)
+entry_topico_dl.grid(row=5, column=1, padx=5, pady=2)
 
-tk.Label(frame_mqtt, text="Tópico UL:").grid(row=3, column=0, sticky="w", padx=5, pady=2)
+tk.Label(frame_mqtt, text="Tópico UL:").grid(row=6, column=0, sticky="w", padx=5, pady=2)
 entry_topico_ul = tk.Entry(frame_mqtt, width=30)
 entry_topico_ul.insert(0, "mot_mqtt_SEU_RA/N2/UL")
-entry_topico_ul.grid(row=3, column=1, padx=5, pady=2)
+entry_topico_ul.grid(row=6, column=1, padx=5, pady=2)
 
-var_qos = tk.BooleanVar(value=False)
+var_qos = tk.BooleanVar(value=True)
 chk_qos = tk.Checkbutton(frame_mqtt, text="Habilitar QoS 1", variable=var_qos)
-chk_qos.grid(row=4, column=0, columnspan=2, sticky="w", padx=5, pady=2)
-
-btn_config_mqtt = tk.Button(frame_mqtt, text="Configurar MQTT", bg="#e1d0fd", font=("Arial", 9, "bold"), command=configurar_mqtt)
-btn_config_mqtt.grid(row=5, column=0, columnspan=2, pady=5)
+chk_qos.grid(row=7, column=0, columnspan=2, sticky="w", padx=5, pady=2)
 
 # 2. Tempo entre pacotes
 frame_tempo = tk.LabelFrame(root, text=" 2. Tempo entre Pacotes ", font=("Arial", 10, "bold"))
 frame_tempo.pack(fill="x", padx=15, pady=5)
 
 entry_tempo = tk.Entry(frame_tempo, font=("Arial", 10), width=10)
-entry_tempo.insert(0, "1")
+entry_tempo.insert(0, "1.5")
 entry_tempo.pack(side="left", padx=10, pady=8)
 tk.Label(frame_tempo, text="segundos").pack(side="left")
 
 tk.Button(frame_tempo, text="Long Distance (6s)", bg="#d9fdd3", command=set_long_distance).pack(side="right", padx=5)
-tk.Button(frame_tempo, text="Short Distance (1s)", bg="#d0e1fd", command=set_short_distance).pack(side="right", padx=5)
+tk.Button(frame_tempo, text="Short Distance (1.5s)", bg="#d0e1fd", command=set_short_distance).pack(side="right", padx=5)
 
 # 3. Número de medidas
 frame_medidas = tk.LabelFrame(root, text=" 3. Número de Medidas ", font=("Arial", 10, "bold"))
@@ -239,6 +186,9 @@ btn_s.grid(row=0, column=2, padx=5, pady=8)
 btn_att = tk.Button(frame_botoes, text="ATUALIZAR", bg="blue", fg="white", font=("Arial", 9, "bold"), width=9, command=btn_atualizar)
 btn_att.grid(row=0, column=3, padx=5, pady=8)
 
+btn_config_mqtt = tk.Button(frame_botoes, text="CONFIGURAR MQTT", bg="yellow", fg="black", font=("Arial", 9, "bold"), command=configurar_mqtt)
+btn_config_mqtt.grid(row=0, column=4, columnspan=2, pady=5)
+
 # Status Atual na Tela
 frame_status = tk.Frame(root)
 frame_status.pack(fill="x", padx=15, pady=5)
@@ -246,15 +196,10 @@ tk.Label(frame_status, text="Status enviado: ", font=("Arial", 9)).pack(side="le
 lbl_status_val = tk.Label(frame_status, text="AGUARDANDO COMANDO", font=("Arial", 9, "bold"), fg="gray")
 lbl_status_val.pack(side="left", padx=5)
 
-
-# ===================== BOTÕES / AÇÕES =====================
 def fechar():
     if messagebox.askokcancel("Sair", "Deseja fechar o parametrizador?"):
         btn_parar()        
         root.destroy()
-
-# Inicializa o estado visual correto dos campos
-alternar_modo_conexao()
 
 root.protocol("WM_DELETE_WINDOW", fechar)
 root.mainloop()
