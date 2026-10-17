@@ -21,7 +21,7 @@ TOPIC_UL      = "mot_mqtt_AAF/gateway/uplink"     # ESP32 publica  → Python as
 # QoS usado nos dois sentidos (DL e UL). QoS1 = "at least once": o broker
 # confirma (PUBACK) e há retransmissão se a confirmação não chegar.
 # Importante para o dado de luminosidade, que é a peça central do framework.
-MQTT_QOS      = 0
+MQTT_QOS      = 1
 estado_mqtt = 0
 
 # ===== Variáveis globais =====

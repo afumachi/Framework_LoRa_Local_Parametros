@@ -121,15 +121,6 @@ entry_broker.current(0)
 
 # Posiciona o componente exatamente no mesmo lugar
 entry_broker.grid(row=0, column=1, padx=5, pady=2)
-'''
-entry_broker = tk.Entry(frame_mqtt, width=30)
-entry_broker.insert(0, "broker.hivemq.com")
-entry_broker.grid(row=0, column=1, padx=5, pady=2)
-tk.Label(frame_mqtt, text="Exemplos:").grid(row=1, column=0, sticky="w", padx=5, pady=2)
-tk.Label(frame_mqtt, text="test.mosquitto.org").grid(row=1, column=1, sticky="w", padx=5, pady=2)
-tk.Label(frame_mqtt, text="broker.hivemq.com").grid(row=2, column=1, sticky="w", padx=5, pady=2)
-tk.Label(frame_mqtt, text="www.tpm.dev.com").grid(row=3, column=1, sticky="w", padx=5, pady=2)
-'''
 
 tk.Label(frame_mqtt, text="Porta MQTT:").grid(row=4, column=0, sticky="w", padx=5, pady=2)
 entry_porta_mqtt = tk.Entry(frame_mqtt, width=10)
@@ -138,12 +129,12 @@ entry_porta_mqtt.grid(row=4, column=1, sticky="w", padx=5, pady=2)
 
 tk.Label(frame_mqtt, text="Tópico DL:").grid(row=5, column=0, sticky="w", padx=5, pady=2)
 entry_topico_dl = tk.Entry(frame_mqtt, width=30)
-entry_topico_dl.insert(0, "mot_mqtt_SEU_RA/N2/DL")
+entry_topico_dl.insert(0, "mot_mqtt_SEU_RA/gateway/downlink")
 entry_topico_dl.grid(row=5, column=1, padx=5, pady=2)
 
 tk.Label(frame_mqtt, text="Tópico UL:").grid(row=6, column=0, sticky="w", padx=5, pady=2)
 entry_topico_ul = tk.Entry(frame_mqtt, width=30)
-entry_topico_ul.insert(0, "mot_mqtt_SEU_RA/N2/UL")
+entry_topico_ul.insert(0, "mot_mqtt_SEU_RA/gateway/uplink")
 entry_topico_ul.grid(row=6, column=1, padx=5, pady=2)
 
 var_qos = tk.BooleanVar(value=True)
