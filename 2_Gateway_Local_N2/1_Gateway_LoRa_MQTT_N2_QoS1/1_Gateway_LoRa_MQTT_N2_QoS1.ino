@@ -14,9 +14,9 @@
 //    Gateway → publica Tópico de Uplink ao Broker MQTT - Python N2_N3 realiza a leitura
 //
 //
-//  Última Modificação: Branquinho / Felipe / Luís Felipe / Anderson - 10/07/2026
+//  Última Modificação: Branquinho / Guilherme / Luís Felipe / Anderson - 17/10/2026
 //
-// Vs.1 - Modificado Broker MQTT de Hivemq para Broker Mosquitto
+//  Vs.1 - Modificado Broker MQTT de Hivemq para Broker Mosquitto
 */
 
 // =====================================================================
@@ -27,7 +27,6 @@
 #include <WiFi.h>
 #include <WiFiMulti.h>
 #include <MQTT.h>   // 256dpi/arduino-mqtt -- instalar via Library Manager: "MQTT" by 256dpi
-
 
 // =====================================================================
 //                     2 - Configurações Wi-Fi
