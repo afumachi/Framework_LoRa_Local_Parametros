@@ -8,17 +8,21 @@ import os
 PASTA_ARMAZENAMENTO = os.path.join("..", "4_N4_Armazenamento")
 CAMINHO_PARAMETROS = os.path.join(PASTA_ARMAZENAMENTO, "Parametros")
 os.makedirs(CAMINHO_PARAMETROS, exist_ok=True)
-ARQUIVO_PARAMETROS = os.path.join(CAMINHO_PARAMETROS, "PARAMETROS.txt")
 ARQUIVO_MQTT = os.path.join(CAMINHO_PARAMETROS, "MQTT.txt")
 
-def configurar_mqtt():
+def configurar_mqtt(cmd_override=None):
+    # Define o comando: se passado por parâmetro (botões), usa ele; senão, usa "1" como padrão
+    comando = str(cmd_override) if cmd_override is not None else "1"
+    
+    medidas = entry_medidas.get().strip()
+    tempo = entry_tempo.get().strip()
     broker = entry_broker.get().strip()
     porta_mqtt = entry_porta_mqtt.get().strip()
     topico_dl = entry_topico_dl.get().strip()
     topico_ul = entry_topico_ul.get().strip()
     qos = 1 if var_qos.get() else 0
 
-    if not broker or not porta_mqtt or not topico_dl or not topico_ul:
+    if not medidas or not tempo or not broker or not porta_mqtt or not topico_dl or not topico_ul:
         messagebox.showerror("Erro", "Todos os campos do MQTT devem ser preenchidos!")
         return
 
@@ -30,60 +34,29 @@ def configurar_mqtt():
 
     try:
         with open(ARQUIVO_MQTT, "w") as f:
-            f.write(f"{broker}\n")
-            f.write(f"{porta_mqtt}\n")
-            f.write(f"{topico_dl}\n")
-            f.write(f"{topico_ul}\n")
-            f.write(f"{qos}\n")
-        messagebox.showinfo("Sucesso", "Configurações do Framework MQTT salvas com sucesso!")
+            f.write(f"{comando}\n")       # 1ª Linha: Comando (Iniciar/Pausar/Parar/Configurar)
+            f.write(f"{medidas}\n")      # 2ª Linha: Número de medidas
+            f.write(f"{tempo}\n")        # 3ª Linha: Tempo entre pacotes
+            f.write(f"{broker}\n")       # 4ª Linha: Broker
+            f.write(f"{porta_mqtt}\n")   # 5ª Linha: Porta MQTT
+            f.write(f"{topico_dl}\n")    # 6ª Linha: Tópico DL
+            f.write(f"{topico_ul}\n")    # 7ª Linha: Tópico UL
+            f.write(f"{qos}\n")          # 8ª Linha: QoS
+        #messagebox.showinfo("Sucesso", "Configurações do Framework MQTT salvas com sucesso!")
     except Exception as e:
         messagebox.showerror("Erro", f"Não foi possível salvar o arquivo MQTT.txt: {e}")
 
-def escrever_parametros(comando):
-    tempo_str = entry_tempo.get().strip().replace(",", ".")
-    medidas_str = entry_medidas.get().strip()
-
-    try:
-        tempo = float(tempo_str)
-    except ValueError:
-        messagebox.showerror("Erro", "O tempo entre pacotes deve ser um número válido!")
-        return
-
-    try:
-        medidas = int(medidas_str)
-        if medidas <= 0:
-            raise ValueError()
-    except ValueError:
-        messagebox.showerror("Erro", "O número de medidas deve ser um inteiro maior que zero!")
-        return
-
-    # Garante que salva o MQTT.txt ao acionar comandos de controle
-    # configurar_mqtt()
-    num_serial = 12
-    try:
-        with open(ARQUIVO_PARAMETROS, "w") as f:
-            f.write(f"{comando}\n")
-            f.write(f"{medidas}\n")
-            f.write(f"{tempo}\n")
-            f.write(f"{num_serial}\n")
-        
-        status_txt = {0: "PARADO", 1: "INICIADO / ATUALIZADO", 2: "PAUSADO"}
-        lbl_status_val.config(text=status_txt[comando], fg="blue" if comando == 1 else ("orange" if comando == 2 else "red"))
-    except Exception as e:
-        messagebox.showerror("Erro", f"Não foi possível gravar o arquivo de parâmetros: {e}")
-
 def btn_iniciar():
-    escrever_parametros(1)
+    configurar_mqtt(1)
 
 def btn_pausar():
-    escrever_parametros(2)
+    configurar_mqtt(2)
 
 def btn_parar():
-    escrever_parametros(0)
+    configurar_mqtt(0)
 
 def btn_atualizar():
-    escrever_parametros(1)
-    #messagebox.showinfo("Atualização", "Parâmetros atualizados com sucesso para o teste em andamento!")
+    configurar_mqtt(1)
 
 def set_short_distance():
     entry_tempo.delete(0, tk.END)
@@ -105,9 +78,6 @@ tk.Label(root, text="Painel de Parâmetros - Comunicação MQTT", font=("Arial",
 frame_mqtt = tk.LabelFrame(root, text=" Configurações do Broker MQTT ", font=("Arial", 10, "bold"))
 frame_mqtt.pack(fill="x", padx=15, pady=5)
 
-tk.Label(frame_mqtt, text="URL do Broker:").grid(row=0, column=0, sticky="w", padx=5, pady=2)
-
-# Mantém a etiqueta lateral idêntica
 tk.Label(frame_mqtt, text="URL do Broker:").grid(row=0, column=0, sticky="w", padx=5, pady=2)
 
 # Lista com os seus servidores de exemplo
@@ -194,3 +164,4 @@ def fechar():
 
 root.protocol("WM_DELETE_WINDOW", fechar)
 root.mainloop()
+

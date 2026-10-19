@@ -13,7 +13,7 @@ CAMINHO_PARAMETROS = os.path.join(PASTA_N4, "Parametros")
 arquivo_luminosidade = f"{PASTA_N4}/Dados_Processados/luminosidade.tmp"
 arquivo_media = f"{PASTA_N4}/Dados_Processados/media_luminosidade.tmp"
 caminho_cliente = os.path.join(CAMINHO_PARAMETROS, "parametros_cliente.txt")
-caminho_aplicacao = os.path.join(CAMINHO_PARAMETROS, "APLICACAO.txt")
+caminho_aplicacao = os.path.join(CAMINHO_PARAMETROS, "cmd_led_amarelo.txt")
 
 # Garante que a pasta de Dados_Processados existe
 if not os.path.exists(f"{PASTA_N4}/Dados_Processados"):

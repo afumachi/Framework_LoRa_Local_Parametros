@@ -7,11 +7,14 @@ import time
 import struct
 from time import localtime, strftime
 import os
+import pandas as pd
 import threading
 
-global comando, medidas, tempo, serial, medida_atual
-global Contador_pkt_DL, tempo_entre_pacotes
-global ID_sensor, ID_gateway, Pacote_DL, Pacote_UL
+global comando, medidas, tempo, medida_atual
+global Contador_pkt_DL, tempo_entre_pacotes, estado_mqtt
+global ID_sensor, ID_gateway, Pacote_DL, Pacote_UL, pacote_recebido
+global Comando_LED_amarelo, St_LED_amarelo, Tamanho_pacote
+global arquivo_log_dados
 
 # ===== Configurações MQTT =====
 BROKER        = "www.tpm.dev.br"
@@ -28,6 +31,10 @@ TOPIC_UL      = "mot_mqtt_2904/gateway/uplink"     # ESP32 publica  → Python a
 # Importante para o dado de luminosidade, que é a peça central do framework.
 MQTT_QOS    = 1
 estado_mqtt = 0
+Pacote_UL_payload = None
+
+# ===== Arquivo Log globais =====
+lock_arquivo_log = threading.Lock()
 
 # ===== Variáveis globais =====
 Tamanho_pacote = 20
@@ -44,19 +51,17 @@ for i in range(Tamanho_pacote):
 Pacote_UL_status = threading.Event()
 Pacote_UL_payload = bytearray(Tamanho_pacote)
 
-# ===== Arquivo Log globais =====
-lock_arquivo_log = threading.Lock()
-
 # Variáveis de Controle
 comando = 0
 medidas = 0
 medida_atual = 0
 tempo = 2
-executando = False
 condicao_start = 0
+arquivo_log_dados = 0
 
 # =============== Camada de aplicação DL
 Comando_LED_amarelo = 0  # Inicia apagado
+St_LED_amarelo = 0
 
 # ================ Camada de Transporte DL
 Contador_pkt_DL = 0
@@ -64,7 +69,7 @@ perda_PK_RX = 0
 
 # ================ Camada MAC
 tempo_entre_pacotes = 2.0
-pacote_recebido = False
+pacote_recebido = 0
 
 # ================ Camada de Rede DL
 #ID_sensor = input("Identificação do sensor = ")
@@ -86,7 +91,7 @@ os.makedirs(caminho_parametros, exist_ok=True)
 caminho_txt_parametros = os.path.join(caminho_parametros, "PARAMETROS.txt")
 caminho_led = os.path.join(caminho_parametros, "cmd_led_amarelo.txt")
 
-Cabecalho = 'Time stamp,Contador,DL_B0,DL_B1,DL_B2,DL_B3,DL_B4,DL_B5,DL_B6,DL_B7,DL_B8,DL_B9,DL_B10,DL_B11,DL_B12,DL_B13,DL_B14,DL_B15,DL_B16,DL_B17,DL_B18,DL_B19,UL_B0,UL_B1,UL_B2,UL_B3,UL_B4,UL_B5,UL_B6,UL_B7,UL_B8,UL_B9,UL_B10,UL_B11,UL_B12,UL_B13,UL_B14,UL_B15,UL_B16,UL_B17,UL_B18,UL_B19'
+#Cabecalho = 'Time stamp,Contador,DL_B0,DL_B1,DL_B2,DL_B3,DL_B4,DL_B5,DL_B6,DL_B7,DL_B8,DL_B9,DL_B10,DL_B11,DL_B12,DL_B13,DL_B14,DL_B15,DL_B16,DL_B17,DL_B18,DL_B19,UL_B0,UL_B1,UL_B2,UL_B3,UL_B4,UL_B5,UL_B6,UL_B7,UL_B8,UL_B9,UL_B10,UL_B11,UL_B12,UL_B13,UL_B14,UL_B15,UL_B16,UL_B17,UL_B18,UL_B19'
 
 # ===== Callbacks MQTT
 def on_connect(client, userdata, flags, reason_code, properties):
@@ -135,40 +140,15 @@ client.loop_start()   # Thread de fundo para receber mensagens
 print("[MQTT] Aguarda conexão ser estabelecida com BROKER ")
 time.sleep(3)
 
-
-def para_medidas():
-    global comando, medidas, tempo
-               
-    # Escreve 0 automaticamente no PARAMETROS.txt para finalizar o ciclo
-    try:
-        # Salva valores atuais em PARAMETROS.txt
-        comando = 0
-        n_medidas = medidas
-        t_medidas = tempo
-        serial_val = "1"
-        if os.path.exists(caminho_txt_parametros):
-            with open(caminho_txt_parametros, "r") as pf:
-                lns = [l.strip() for l in pf.readlines()]
-                if len(lns) >= 4:
-                        serial_val = lns[3]
-            with open(caminho_txt_parametros, "w") as pf:
-                pf.write("0\n")
-                pf.write(f"{n_medidas}\n")
-                pf.write(f"{t_medidas}\n")
-                pf.write(f"{serial_val}\n")
-    except Exception as e:
-        print(f"[Erro] Falha ao atualizar PARAMETROS.txt para 0: {e}")
-
-
 def ler_cmd_led_amarelo():
     """
     Lê o arquivo 'cmd_led_amarelo.txt' e retorna o valor inteiro (0 ou 1).
     Se o arquivo não existir ou estiver inválido, retorna 0 por segurança.
     """
     # Caminho da Pasta de armazenamento (Caminho Relativo)
-    ARMAZENAMENTO = os.path.join("..", "4_N4_Armazenamento")
-    caminhoparametros = os.path.join(ARMAZENAMENTO, "Parametros")    
-    caminho_led = os.path.join(caminhoparametros, "cmd_led_amarelo.txt")
+    #ARMAZENAMENTO = os.path.join("..", "4_N4_Armazenamento")
+    #caminhoparametros = os.path.join(ARMAZENAMENTO, "Parametros")    
+    caminho_led = os.path.join(caminho_parametros, "cmd_led_amarelo.txt")
     
     try:
         # Abre o arquivo usando o gerenciador 'with' (fecha automaticamente)
@@ -190,7 +170,7 @@ def ler_cmd_led_amarelo():
 # ========== DONWLINK MQTT ==========
 def downlink():
    global Contador_pkt_DL, tempo_entre_pacotes
-   global ID_sensor, ID_gateway, Pacote_DL, medida_atual
+   global ID_sensor, ID_gateway, Pacote_DL, Pacote_UL, medida_atual
 
    # Limpa o pacote para garantir que não tem lixo[cite: 8]
    for i in range(Tamanho_pacote):
@@ -240,7 +220,7 @@ def downlink():
 
 # ========== UPLINK MQTT ==========
 def uplink():
-   global Pacote_UL, medida_atual, pacote_recebido
+   global Pacote_UL, Pacote_DL, medida_atual, pacote_recebido, tempo_entre_pacotes
 
    # ======== COLETA UPLINK NO BROKER ========
    Pacote_UL_novo = Pacote_UL_status.wait(timeout=tempo_entre_pacotes)
@@ -249,12 +229,12 @@ def uplink():
       Pacote_UL_status.clear()
       Pacote_UL = Pacote_UL_payload          
       if len(Pacote_UL) == Tamanho_pacote:
-         pacote_recebido = True
-         print('Pacote = ',medida_atual,' | Pacote UL recebido | STATUS LED = ',Comando_LED_amarelo)
-      else:
-         pacote_recebido = False
+         pacote_recebido = 1
+         St_LED_amarelo = Pacote_UL[16]
+         print('Pacote = ',medida_atual,' | Pacote UL recebido | STATUS LED = ',St_LED_amarelo)
+   else:
+      pacote_recebido = 0
          
-
 
 # ===== Loop principal: repete pedindo número de medidas =====
 print("\n========== Gateway LoRa - Comunicação MQTT ==========")
@@ -262,103 +242,87 @@ print("\n Aguardando Comando de INICIAR")
 try:
     while True:
          
-      # Leitura constante do arquivo de parâmetros do Usuário Nível 6
-      path_param = os.path.join(caminho_parametros, 'PARAMETROS.txt')
-      if os.path.exists(path_param):
-         Parametros = open(path_param, 'r')
-         line = Parametros.readline()
-         if len(line) > 0: condicao_start = int(line)
-         line = Parametros.readline()
-         if len(line) > 0: num_medidas = int(line)
-         line = Parametros.readline()
-         if len(line) > 0: tempo = float(line.replace(',', '.')) #tempo = float(line)
-         line = Parametros.readline()
-         if len(line) > 0: serial = int(line)
+        # Leitura constante do arquivo de parâmetros do Usuário Nível 6
+        path_param = os.path.join(caminho_parametros, 'MQTT.txt')
+        if os.path.exists(path_param):
+            Parametros_r = open(path_param, 'r')
+            line = Parametros_r.readline()
+            if len(line) > 0: condicao_start = int(line)
+            line = Parametros_r.readline()
+            if len(line) > 0: num_medidas = int(line)
+            line = Parametros_r.readline()
+            if len(line) > 0: tempo = float(line.replace(',', '.')) #tempo = float(line)
       
-      tempo_entre_pacotes = tempo          
+            tempo_entre_pacotes = tempo          
         
-      # Caso MQTT desconectado - Reconectar
-      if estado_mqtt != 1:
-          client.reconnect()      
+        # Caso MQTT desconectado - Reconectar
+        if estado_mqtt != 1:
+            client.reconnect()      
 
-      if (condicao_start == 1):
-          executando = True
+        if (condicao_start == 1):
 
-          if (medida_atual == 0):
+             if (medida_atual == 0):
+                
+                 if (arquivo_log_dados == 0):
+                      
+                     #Caminho da Pasta de armazenamento (Caminho Relativo)
+
+                     print("################## LSS - Iniciando Medições LoRa #################")
+                     # Gera o nome do arquivo com o novo caminho
+                     filename1 = strftime(os.path.join(caminho_dados_brutos, "Rodada_Teste_%Y_%m_%d_%H-%M-%S.txt"))
+           
+                     Log_dados = open(filename1, 'w')
+                     print("Arquivo de log: %s" % filename1)
+                     Cabecalho = 'Time stamp,Contador,DL_B0,DL_B1,DL_B2,DL_B3,DL_B4,DL_B5,DL_B6,DL_B7,DL_B8,DL_B9,DL_B10,DL_B11,DL_B12,DL_B13,DL_B14,DL_B15,DL_B16,DL_B17,DL_B18,DL_B19,DL_B20,DL_B21,DL_B22,DL_B23,DL_B24,DL_B25,DL_B26,DL_B27,DL_B28,DL_B29,UL_B0,UL_B1,UL_B2,UL_B3,UL_B4,UL_B5,UL_B6,UL_B7,UL_B8,UL_B9,UL_B10,UL_B11,UL_B12,UL_B13,UL_B14,UL_B15,UL_B16,UL_B17,UL_B18,UL_B19,UL_B20,UL_B21,UL_B22,UL_B23,UL_B24,UL_B25,UL_B26,UL_B27,UL_B28,UL_B29'
+                     print(Cabecalho,file=Log_dados)
+                     arquivo_log_dados = 1
+                     time.sleep(1)
+
+             Tempo_gasto = 0
+             Tempo_inicio_pacote = time.time()
               
-              # Caminho da Pasta de armazenamento (Caminho Relativo)
-              PASTA_ARMAZENAMENTO = os.path.join("..", "4_N4_Armazenamento")
-
-              # Caminhos dos arquivos de armazenamento e leitura de parâmetros
-              caminho_parametros = os.path.join(PASTA_ARMAZENAMENTO, "Parametros")
-              caminho_dados_brutos = os.path.join(PASTA_ARMAZENAMENTO, "Dados_Brutos")
-
-              os.makedirs(caminho_dados_brutos, exist_ok=True)
-              os.makedirs(caminho_parametros, exist_ok=True)
-
-              # Gera a string com a data e hora atual (ex: Rodada_Teste_2026_10_17_11-36-00.txt)
-              nome_arquivo = time.strftime("Rodada_Teste_%Y_%m_%d_%H-%M-%S.txt")
-
-              # Combina o diretório com o nome do arquivo gerado
-              filename1 = os.path.join(caminho_dados_brutos, nome_arquivo)
-                  
-              #filename1 = strftime(caminho_dados_brutos,"\Rodada_Teste_%Y_%m_%d_%H-%M-%S.txt")
-              Log_dados = open(filename1, 'w')
-              print("Arquivo de log: %s" % filename1)
-              Cabecalho = 'Time stamp,Contador,DL_B0,DL_B1,DL_B2,DL_B3,DL_B4,DL_B5,DL_B6,DL_B7,DL_B8,DL_B9,DL_B10,DL_B11,DL_B12,DL_B13,DL_B14,DL_B15,DL_B16,DL_B17,DL_B18,DL_B19,UL_B0,UL_B1,UL_B2,UL_B3,UL_B4,UL_B5,UL_B6,UL_B7,UL_B8,UL_B9,UL_B10,UL_B11,UL_B12,UL_B13,UL_B14,UL_B15,UL_B16,UL_B17,UL_B18,UL_B19'
-              print(Cabecalho,file=Log_dados)
-              print(f"[MQTT] Comando recebido = {comando} , Medidas = {num_medidas}, Tempo entre Pacotes = {tempo_entre_pacotes}...")
-              time.sleep(1)
-
-          # ================ Camada MAC DL
-          #Tempo_entre_pacotes = input("Tempo entre pacotes (s) =")
-          Tempo_gasto = 0
-          Variavel_loop = int(num_medidas) + 1
+             # ================ Envio de pacote de DL
           
-          # ================ Envio de pacote de DL
-          
-          if (Tempo_gasto == 0):
-          #try:
-             if(medida_atual < num_medidas): #for j in range(1, int(Variavel_loop)):
+             if(medida_atual < (num_medidas)): #for j in range(1, int(Variavel_loop)):
                 # ===================== LOOP DE ENVIO DE PACOTES =============
 
                 medida_atual = medida_atual + 1
-                print("### LSS - Medida: ",medida_atual, "de ",num_medidas)
+                print("### LoRa MQTT -> Medida: ",medida_atual, "de ",num_medidas)
                 
-                Tempo_inicio_pacote = time.time()
-
                 downlink()
 
                 # Aguarda tempo de Publicação no BROKER + Tempo Rádio LoRa
-                time.sleep(tempo_entre_pacotes/2)
-                
+                time.sleep(tempo_entre_pacotes)
+                pacote_recebido = 0
                 uplink()
-
-                if (pacote_recebido == True):    
+                print("Pacote Recebido: ", pacote_recebido)
+                
+                if (pacote_recebido == 1):    
                       
-                      Dados_DL = ''
-                      Dados_UL = ''
-                      #Prepara os dados dos pacotes de Downlink e Uplink para serem impressos
-                      for i in range(Tamanho_pacote):
-                         if i == 0:
-                            Dados_DL = str(Pacote_DL[i])
-                            Dados_UL = str(Pacote_UL[i])
-                         else:
-                            Dados_DL = Dados_DL + ', ' + str(Pacote_DL[i])
-                            Dados_UL = Dados_UL + ', ' + str(Pacote_UL[i])
-                      Tempo = time.asctime()
-                      print(Tempo + ', ' + str(medida_atual) + ', Downlink: ' + Dados_DL + ' Uplink: ' + Dados_UL)
+                   Dados_DL = ''
+                   Dados_UL = ''
+                   #Prepara os dados dos pacotes de Downlink e Uplink para serem impressos
+                   for i in range(Tamanho_pacote):
+                      if i == 0:
+                         Dados_DL = str(Pacote_DL[i])
+                         Dados_UL = str(Pacote_UL[i])
+                      else:
+                         Dados_DL = Dados_DL + ', ' + str(Pacote_DL[i])
+                         Dados_UL = Dados_UL + ', ' + str(Pacote_UL[i])
+                   Tempo = time.asctime()
+                   print(Tempo + ', ' + str(medida_atual) + ', Downlink: ' + Dados_DL + ' Uplink: ' + Dados_UL)
 
-                      # Grava Pacotes com a trava de segurança
-                      with lock_arquivo_log:                      
-                         Dados_log = Tempo + ',' + str(medida_atual) + ',' + Dados_DL + ',' + Dados_UL
-                         print(Dados_log,file=Log_dados)
-                         Log_dados.flush()
+                   # Grava Pacotes com a trava de segurança
+                   with lock_arquivo_log:                      
+                      Dados_log = Tempo + ',' + str(medida_atual) + ',' + Dados_DL + ',' + Dados_UL
+                      print(Dados_log,file=Log_dados)
+                      Log_dados.flush()
 
-                elif(pacote_recebido == False):
-                   perda_PK_RX += 1
+                elif(pacote_recebido == 0):
+                    
+                   perda_PK_RX = perda_PK_RX + 1
                    print('Cont = ', medida_atual, ' PERDEU N PACOTES ', perda_PK_RX)
-                   
+                   #Prepara os dados dos pacotes de Downlink e Uplink para serem salvos
                    Dados_DL = ''
                    Dados_UL = ''
                    
@@ -380,64 +344,60 @@ try:
 
                 Tempo_gasto = time.time() - Tempo_inicio_pacote
 
-             else:       
+             elif (medida_atual >= num_medidas):       
+                 #Atualiza arquivo de Parâmetros
+                 path_param = os.path.join(caminho_parametros, 'MQTT.txt')
+                 Parametros = open(path_param, 'w')
+                 Parametros.write("0\n100\n2\n")  
+                 Parametros.close()
                  print('Pacotes enviados = ',medida_atual,' Pacotes perdidos = ',perda_PK_RX)
                  print('Tempo Entre Pacotes = ',Tempo_gasto)
                  medida_atual = 0
                  Contador_pkt_DL = 0
-
-                 #Atualiza arquivo de Parâmetros
-                 path_param = os.path.join(caminho_parametros, 'PARAMETROS.txt')
-                 Parametros = open(path_param, 'w')
-                 Parametros.write("0\n100\n2\n12\n")  
-                 Parametros.close()
-           
-                 Log_dados.close()
+                 arquivo_log_dados = 0           
+                 #Log_dados.close()
                  print('[LoRa MQTT] Fim da Execução')
-          
-             #except:
-             #executando = False
-             #Log_dados.close()
-             #Contador_pkt_DL = 0
-             #para_medidas()
-             #print('except [LoRa MQTT] Fim da Execução')
 
-      elif(condicao_start == 2):
-          executando = False
-          print('[LoRa MQTT] Execução em pausa')
-          time.sleep(1)
+        elif(condicao_start == 2):
+            print('[LoRa MQTT] Execução em pausa')
+            time.sleep(1)
           
-      elif((condicao_start == 0) and (medida_atual == condicao_start)):#((comando == 0) and (executando == True)):
-          executando = False
-          comando = 0
-          medida_atual = 0
-          Contador_pkt_DL = 0
-          #para_medidas()
-
-          #Atualiza arquivo de Parâmetros
-          path_param = os.path.join(caminho_parametros, 'PARAMETROS.txt')
-          Parametros = open(path_param, 'w')
-          Parametros.write("0\n100\n2\n12\n") 
-          Parametros.close()
+        elif((condicao_start == 0) or (medida_atual == condicao_start)): #((comando == 0) and (executando == True)):
+            comando = 0
+            medida_atual = 0
+            Contador_pkt_DL = 0
+            perda_PK_RX = 0
+            arquivo_log_dados = 0
+            #Atualiza arquivo de Parâmetros
+            path_param = os.path.join(caminho_parametros, 'MQTT.txt')
+            Parametros = open(path_param, 'w')
+            Parametros.write("0\n100\n2\n") 
+            Parametros.close()
           
-          try:
-              Log_dados.close()
-          except (AttributeError, NameError):
-              pass
+            try:
+                Log_dados.close()
+            except (AttributeError, NameError):
+                pass
               
-          print('[LoRa MQTT] Execução Parada... comando = PARAR')
-          time.sleep(1)
-      else:
-          print('[LoRa MQTT] Condição Start...', condicao_start)
+            print('[LoRa MQTT] Fim da Execução... comando = PARAR')
+            time.sleep(1)
+
+        else:
+            print('[LoRa MQTT] Condição Start...', condicao_start)
+            comando = 0
+            medida_atual = medida_atual -1
+            time.sleep(1)
 
 # Interrompe a aplicação N2_N3 e a conexão com MQTT
 except KeyboardInterrupt:
    print("\n[Ctrl + C] Interrompido pelo usuário.")
    Log_dados.close()
+   medida_atual = 0
    #Atualiza arquivo de Parâmetros
-   path_param = os.path.join(caminho_parametros, 'PARAMETROS.txt')
+   arquivo_log_dados = 0
+   path_param = os.path.join(caminho_parametros, 'MQTT.txt')
    Parametros = open(path_param, 'w')
-   Parametros.write("0\n100\n2\n12\n")  
+   Parametros.write("0\n100\n2\n")  
    Parametros.close()
    print('[LoRa MQTT] Fim da Execução')
    client.loop_stop()
