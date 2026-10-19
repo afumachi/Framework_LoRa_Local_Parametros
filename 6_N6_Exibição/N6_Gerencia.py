@@ -307,6 +307,12 @@ canvas3.get_tk_widget().pack(fill="both", expand=True)
 
 # ===================== INICIALIZAÇÃO =====================
 atualizar_grafico(ax1, ax2, ax3, canvas1, canvas2, canvas3, raiz, label_down, label_up, label_snr_down, label_snr_up, label_psr)
+
+def fechar():
+    if messagebox.askokcancel("Sair", "Deseja fechar o parametrizador?"):
+            
+        raiz.destroy()
+
 raiz.protocol("WM_DELETE_WINDOW", fechar)
 
 raiz.mainloop()

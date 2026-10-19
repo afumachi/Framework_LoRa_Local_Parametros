@@ -85,88 +85,12 @@ tk.Button(janela, text="Salvar limiar", width=20, command=salvar_limiar).pack(pa
 status = tk.Label(janela, text="", font=("Arial", 9), fg="gray")
 status.pack(pady=5)
 
-janela.mainloop()
+def fechar():
+    if messagebox.askokcancel("Sair", "Deseja fechar o parametrizador?"):
+            
+        janela.destroy()
 
-'''
-# Setup | Cliente | WissTek-IoT | Framework Local DL-UL
-# 13/10/2026
-#====== Setup do Cliente ======
-# Define o limiar de luminosidade e grava o parametros_cliente.txt
-# Abaixo do limiar o nó sensor acende o LED amarelo
-import tkinter as tk
-from tkinter import messagebox
-import os
-
-# Pasta raiz do framework (onde este arquivo está)
-PASTA_RAIZ = os.path.dirname(os.path.abspath(__file__))
-
-# Caminho para salvamento dos parâmetros
-PASTA_ARMAZENAMENTO = os.path.join("..", "4_N4_Armazenamento")
-CAMINHO_PARAMETROS = os.path.join(PASTA_ARMAZENAMENTO, "Parametros")
-os.makedirs(CAMINHO_PARAMETROS, exist_ok=True)
-caminho_cliente = os.path.join(CAMINHO_PARAMETROS, "parametros_cliente.txt")
-os.makedirs(CAMINHO_PARAMETROS, exist_ok=True)
-
-# Faixa do ADC de 12 bits do ESP32
-LIMIAR_MIN = 0
-LIMIAR_MAX = 4095
-
-def carregar_limiar():
-    try:
-        with open(caminho_cliente, "r") as f:
-            return int(float(f.readline().strip().replace(",", ".")))
-    except (FileNotFoundError, ValueError):
-        return 2000
-
-def salvar_limiar():
-    try:
-        limiar = int(entrada_limiar.get().strip())
-        if limiar < LIMIAR_MIN or limiar > LIMIAR_MAX:
-            raise ValueError
-    except ValueError:
-        messagebox.showerror("Erro", f"Limiar inválido. Use um inteiro de {LIMIAR_MIN} a {LIMIAR_MAX}.")
-        return
-    with open(caminho_cliente, "w") as f:
-        f.write(str(limiar) + "\n")
-    status.config(text=f"Limiar {limiar} salvo em parametros_cliente.txt")
-    print(f"Limiar {limiar} salvo em: {caminho_cliente}")
-
-# Mantém a caixa de texto e o slider sincronizados
-def slider_mudou(valor):
-    entrada_limiar.delete(0, tk.END)
-    entrada_limiar.insert(0, str(int(float(valor))))
-
-def entrada_mudou(event=None):
-    try:
-        escala.set(int(entrada_limiar.get().strip()))
-    except ValueError:
-        pass
-
-# ===================== INTERFACE =====================
-janela = tk.Tk()
-janela.title("Setup - Cliente | Framework DL-UL")
-janela.geometry("380x230")
-
-tk.Label(janela, text="Limiar de luminosidade (0 a 4095):", font=("Arial", 11)).pack(pady=(10, 0))
-tk.Label(janela, text="Abaixo deste valor o LED amarelo acende", font=("Arial", 8)).pack()
-
-escala = tk.Scale(janela, from_=LIMIAR_MIN, to=LIMIAR_MAX, orient="horizontal", length=320,
-                  showvalue=False, command=slider_mudou)
-escala.pack()
-
-entrada_limiar = tk.Entry(janela, width=10, justify="center")
-entrada_limiar.pack(pady=5)
-entrada_limiar.bind("<Return>", entrada_mudou)
-entrada_limiar.bind("<FocusOut>", entrada_mudou)
-
-limiar_inicial = carregar_limiar()
-escala.set(limiar_inicial)
-slider_mudou(limiar_inicial)
-
-tk.Button(janela, text="Salvar limiar", width=20, command=salvar_limiar).pack(pady=5)
-
-status = tk.Label(janela, text="", font=("Arial", 9), fg="gray")
-status.pack(pady=5)
+janela.protocol("WM_DELETE_WINDOW", fechar)
 
 janela.mainloop()
-'''
+
