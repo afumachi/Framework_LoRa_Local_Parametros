@@ -85,8 +85,6 @@ PacoteUL = [0]*Tamanho_pacote
 for i in range(Tamanho_pacote):
    Pacote_DL[i] = 0
    PacoteUL[i] = 0
-# ================== 3 - Arquivos criados para o Nível 4 Armazenamento
-
 
 # ===== Loop principal: repete pedindo número de medidas =====
 print("\n========== Gateway LoRa - Comunicação MQTT ==========")
