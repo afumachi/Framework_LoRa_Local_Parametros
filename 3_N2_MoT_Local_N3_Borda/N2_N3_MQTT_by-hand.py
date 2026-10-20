@@ -15,6 +15,7 @@ global Contador_pkt_DL, tempo_entre_pacotes, estado_mqtt
 global ID_sensor, ID_gateway, Pacote_DL, Pacote_UL, pacote_recebido
 global Comando_LED_amarelo, St_LED_amarelo, Tamanho_pacote
 global arquivo_log_dados
+global BROKER, PORTA_MQTT, TOPIC_DL, TOPIC_UL
 
 # ===== Configurações MQTT =====
 BROKER        = "www.tpm.dev.br"
@@ -252,6 +253,15 @@ try:
             if len(line) > 0: num_medidas = int(line)
             line = Parametros_r.readline()
             if len(line) > 0: tempo = float(line.replace(',', '.')) #tempo = float(line)
+            line = Parametros_r.readline()
+            if len(line) > 0: broker_mqtt = line
+            line = Parametros_r.readline()
+            if len(line) > 0: porta_broker = int(line)
+            line = Parametros_r.readline()
+            if len(line) > 0: topico_mqtt_dl = line
+            line = Parametros_r.readline()
+            if len(line) > 0: topico_mqtt_ul = line
+            
       
             tempo_entre_pacotes = tempo          
         
@@ -268,6 +278,8 @@ try:
                      #Caminho da Pasta de armazenamento (Caminho Relativo)
 
                      print("################## LSS - Iniciando Medições LoRa #################")
+
+                     #print(f"[MQTT] condicao_start: {condicao_start}, num_medidas: {num_medidas}, tempo: {tempo}, broker_mqtt: {broker_mqtt}, porta_broker: {porta_broker}, topico_mqtt_dl: {topico_mqtt_dl}, topico_mqtt_dl: {topico_mqtt_ul} ")
                      # Gera o nome do arquivo com o novo caminho
                      filename1 = strftime(os.path.join(caminho_dados_brutos, "Rodada_Teste_%Y_%m_%d_%H-%M-%S.txt"))
            
