@@ -5,7 +5,7 @@ from tkinter import ttk  # Importante: precisa importar o ttk para usar o Combob
 import os
 
 # Caminho para salvamento dos parâmetros
-PASTA_ARMAZENAMENTO = os.path.join("..", "4_N4_Armazenamento")
+PASTA_ARMAZENAMENTO = os.path.join("4_N4_Armazenamento")
 CAMINHO_PARAMETROS = os.path.join(PASTA_ARMAZENAMENTO, "Parametros")
 os.makedirs(CAMINHO_PARAMETROS, exist_ok=True)
 ARQUIVO_MQTT = os.path.join(CAMINHO_PARAMETROS, "MQTT.txt")
@@ -164,4 +164,3 @@ def fechar():
 
 root.protocol("WM_DELETE_WINDOW", fechar)
 root.mainloop()
-

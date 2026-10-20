@@ -5,7 +5,7 @@ import serial.tools.list_ports
 import os
 
 # Caminho para salvamento dos parâmetros
-PASTA_ARMAZENAMENTO = os.path.join("..", "4_N4_Armazenamento")
+PASTA_ARMAZENAMENTO = os.path.join("4_N4_Armazenamento")
 CAMINHO_PARAMETROS = os.path.join(PASTA_ARMAZENAMENTO, "Parametros")
 os.makedirs(CAMINHO_PARAMETROS, exist_ok=True)
 ARQUIVO_PARAMETROS = os.path.join(CAMINHO_PARAMETROS, "PARAMETROS.txt")
@@ -147,4 +147,10 @@ tk.Label(frame_status, text="Status enviado: ", font=("Arial", 9)).pack(side="le
 lbl_status_val = tk.Label(frame_status, text="AGUARDANDO COMANDO", font=("Arial", 9, "bold"), fg="gray")
 lbl_status_val.pack(side="left", padx=5)
 
+def fechar():
+    if messagebox.askokcancel("Sair", "Deseja fechar o parametrizador?"):
+        btn_parar()        
+        root.destroy()
+
+root.protocol("WM_DELETE_WINDOW", fechar)
 root.mainloop()
