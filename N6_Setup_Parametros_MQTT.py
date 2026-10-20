@@ -33,7 +33,7 @@ def configurar_mqtt(cmd_override=None):
         return
 
     try:
-        with open(ARQUIVO_MQTT, "w") as f:
+        with open(ARQUIVO_MQTT, "w", encoding="utf-8") as f:
             f.write(f"{comando}\n")       # 1ª Linha: Comando (Iniciar/Pausar/Parar/Configurar)
             f.write(f"{medidas}\n")      # 2ª Linha: Número de medidas
             f.write(f"{tempo}\n")        # 3ª Linha: Tempo entre pacotes
@@ -85,11 +85,7 @@ lista_brokers = ["broker.hivemq.com", "test.mosquitto.org", "www.tpm.dev.br"]
 
 # Substitui o Entry antigo armazenando o Combobox diretamente na variável 'entry_broker'
 entry_broker = ttk.Combobox(frame_mqtt, width=28, values=lista_brokers)
-
-# Define "broker.hivemq.com" (índice 0) como o valor inicial padrão
 entry_broker.current(0)
-
-# Posiciona o componente exatamente no mesmo lugar
 entry_broker.grid(row=0, column=1, padx=5, pady=2)
 
 tk.Label(frame_mqtt, text="Porta MQTT:").grid(row=4, column=0, sticky="w", padx=5, pady=2)
@@ -156,6 +152,63 @@ frame_status.pack(fill="x", padx=15, pady=5)
 tk.Label(frame_status, text="Status enviado: ", font=("Arial", 9)).pack(side="left")
 lbl_status_val = tk.Label(frame_status, text="AGUARDANDO COMANDO", font=("Arial", 9, "bold"), fg="gray")
 lbl_status_val.pack(side="left", padx=5)
+
+def carregar_parametros_iniciais():
+    """Lê o arquivo MQTT.txt ao iniciar e preenche os campos da interface se o arquivo existir."""
+    if os.path.exists(ARQUIVO_MQTT):
+        try:
+            with open(ARQUIVO_MQTT, "r", encoding="utf-8") as f:
+                linhas = [l.strip() for l in f.readlines()]
+            
+            # Verifica se o arquivo contém todas as 8 linhas esperadas
+            if len(linhas) >= 8:
+                # Linha 0: Comando (ignorado na interface visual, mas mantido no arquivo)
+                num_medidas = linhas[1]
+                tempo = linhas[2]
+                broker = linhas[3]
+                porta_mqtt = linhas[4]
+                topico_dl = linhas[5]
+                topico_ul = linhas[6]
+                qos = linhas[7]
+
+                # Preenche Número de Medidas
+                if num_medidas:
+                    entry_medidas.delete(0, tk.END)
+                    entry_medidas.insert(0, num_medidas)
+
+                # Preenche Tempo entre pacotes
+                if tempo:
+                    entry_tempo.delete(0, tk.END)
+                    entry_tempo.insert(0, tempo)
+
+                # Preenche Broker MQTT
+                if broker:
+                    entry_broker.set(broker)
+
+                # Preenche Porta MQTT
+                if porta_mqtt:
+                    entry_porta_mqtt.delete(0, tk.END)
+                    entry_porta_mqtt.insert(0, porta_mqtt)
+
+                # Preenche Tópico DL
+                if topico_dl:
+                    entry_topico_dl.delete(0, tk.END)
+                    entry_topico_dl.insert(0, topico_dl)
+
+                # Preenche Tópico UL
+                if topico_ul:
+                    entry_topico_ul.delete(0, tk.END)
+                    entry_topico_ul.insert(0, topico_ul)
+
+                # Preenche QoS
+                if qos in ("1", "0"):
+                    var_qos.set(qos == "1")
+                    
+        except Exception as e:
+            print(f"[Aviso] Não foi possível carregar os parâmetros iniciais do MQTT.txt: {e}")
+
+# Executa o carregamento automático dos parâmetros ao abrir a aplicação
+carregar_parametros_iniciais()
 
 def fechar():
     if messagebox.askokcancel("Sair", "Deseja fechar o parametrizador?"):

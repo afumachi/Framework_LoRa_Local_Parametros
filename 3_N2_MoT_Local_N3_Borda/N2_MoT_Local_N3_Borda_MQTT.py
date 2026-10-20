@@ -10,11 +10,10 @@ import os
 import pandas as pd
 import threading
 
-global comando, medidas, tempo, medida_atual
+global comando, medidas, tempo, medida_atual, arquivo_log_dados
 global Contador_pkt_DL, tempo_entre_pacotes, estado_mqtt
 global ID_sensor, ID_gateway, Pacote_DL, Pacote_UL, pacote_recebido
 global Comando_LED_amarelo, St_LED_amarelo, Tamanho_pacote
-global arquivo_log_dados
 global BROKER, PORTA_MQTT, TOPIC_DL, TOPIC_UL, MQTT_QOS
 global broker_mqtt, porta_broker, topico_mqtt_dl, topico_mqtt_ul, qos_mqtt
 
@@ -227,7 +226,7 @@ def downlink():
 
 # ========== UPLINK MQTT ==========
 def uplink():
-   global Pacote_UL, Pacote_DL, medida_atual, pacote_recebido, tempo_entre_pacotes
+   global Pacote_UL, Pacote_DL, medida_atual, pacote_recebido, tempo_entre_pacotes, St_LED_amarelo
 
    Pacote_UL_novo = Pacote_UL_status.wait(timeout=tempo_entre_pacotes)
    
@@ -237,7 +236,7 @@ def uplink():
       if len(Pacote_UL) == Tamanho_pacote:
          pacote_recebido = 1
          St_LED_amarelo = Pacote_UL[16]
-         print('Pacote = ', medida_atual, ' | Pacote UL recebido | STATUS LED = ', St_LED_amarelo)
+         #print('Pacote = ', medida_atual, ' | Pacote UL recebido | STATUS LED = ', St_LED_amarelo)
    else:
       pacote_recebido = 0
 
@@ -302,7 +301,7 @@ try:
                 time.sleep(tempo_entre_pacotes)
                 pacote_recebido = 0
                 uplink()
-                print("Pacote Recebido: ", pacote_recebido)
+                #print("Pacote Recebido: ", pacote_recebido)
                 
                 if (pacote_recebido == 1):    
                    Dados_DL = ''
