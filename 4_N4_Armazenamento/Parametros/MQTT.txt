@@ -1,8 +1,8 @@
 0
-10
+10000
 1.5
 www.tpm.dev.br
 1883
-mot_mqtt_2904/gateway/downlink
-mot_mqtt_2904/gateway/uplink
+mot_mqtt_SEU_RA/gateway/downlink
+mot_mqtt_SEU_RA/gateway/uplink
 1

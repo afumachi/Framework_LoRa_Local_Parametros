@@ -24,7 +24,7 @@ if not os.path.exists(PASTA_N4):
     os.mkdir(PASTA_N4)
 if not os.path.exists(f"{PASTA_N4}/Parametros"):
     os.mkdir(f"{PASTA_N4}/Parametros")
-caminho_cmd_led = f"{PASTA_N4}/Parametros/APLICACAO.txt"
+caminho_cmd_led = f"{PASTA_N4}/Parametros/cmd_led_amarelo.txt"
 
 def salvar_cmd_led(valor):
     try:
@@ -243,12 +243,12 @@ label_up.pack(side="left", padx=2)
 # Sub-frame para Controles (LED Amarelo e Salvar Gráficos)
 frame_controles = tk.Frame(frame_topo)
 frame_controles.pack(side="right", padx=2)
-'''
+
 opcao_led = tk.IntVar(value=0)
 tk.Label(frame_controles, text="LED Amarelo:", font=("Arial", 8, "bold")).pack(side="left", padx=2)
 tk.Radiobutton(frame_controles, text="0", variable=opcao_led, value=0, command=lambda: salvar_cmd_led(opcao_led.get())).pack(side="left")
 tk.Radiobutton(frame_controles, text="1", variable=opcao_led, value=1, command=lambda: salvar_cmd_led(opcao_led.get())).pack(side="left")
-'''
+
 btn_salvar = tk.Button(frame_controles, text="Salvar Gráficos", font=("Arial", 8, "bold"), command=lambda: salvar(fig1, fig2, fig3))
 btn_salvar.pack(side="left", padx=(8, 0))
 
