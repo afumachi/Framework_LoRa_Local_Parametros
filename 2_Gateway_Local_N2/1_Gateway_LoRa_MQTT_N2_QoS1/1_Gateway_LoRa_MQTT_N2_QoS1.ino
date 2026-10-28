@@ -51,8 +51,8 @@ const char* MQTT_BROKER   = "www.tpm.dev.br";
 
 
 const int   MQTT_PORT     = 1883;
-const char* TOPIC_DL      = "mot_mqtt_2904/gateway/downlink";  // Python → ESP32
-const char* TOPIC_UL      = "mot_mqtt_2904/gateway/uplink";    // ESP32  → Python
+const char* TOPIC_DL      = "mot_mqtt_AAF/gateway/downlink";  // Python → ESP32
+const char* TOPIC_UL      = "mot_mqtt_AAF/gateway/uplink";    // ESP32  → Python
 String CLIENT_ID ;         // ID único no broker através do Endereço MAC do ESP32
 
 // QoS usado nos dois sentidos (DL e UL). QoS1 = "at least once": o broker
