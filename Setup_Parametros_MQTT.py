@@ -13,7 +13,7 @@ ARQUIVO_MQTT = os.path.join(CAMINHO_PARAMETROS, "MQTT.txt")
 def configurar_mqtt(cmd_override=None):
     # Define o comando: se passado por parâmetro (botões), usa ele; senão, usa "1" como padrão
     comando = str(cmd_override) if cmd_override is not None else "1"
-    
+
     medidas = entry_medidas.get().strip()
     tempo = entry_tempo.get().strip()
     broker = entry_broker.get().strip()
@@ -68,7 +68,7 @@ def set_long_distance():
 
 # ================= INTERFACE GRÁFICA =================
 root = tk.Tk()
-root.title("FEE247 - LoRa - Parâmetros de Medidas (MQTT)")
+root.title("FEE247 - LoRa - Parâmetros MQTT e Medidas")
 root.geometry("480x500")
 root.resizable(False, False)
 
@@ -87,6 +87,11 @@ lista_brokers = ["broker.hivemq.com", "test.mosquitto.org", "www.tpm.dev.br"]
 entry_broker = ttk.Combobox(frame_mqtt, width=28, values=lista_brokers)
 entry_broker.current(0)
 entry_broker.grid(row=0, column=1, padx=5, pady=2)
+
+
+btn_config_mqtt = tk.Button(frame_mqtt, text="CONFIGURA MQTT", bg="yellow", fg="black", font=("Arial", 9, "bold"), width=15, command=configurar_mqtt)
+btn_config_mqtt.grid(row=0, column=3, columnspan=2, pady=8) # 
+
 
 tk.Label(frame_mqtt, text="Porta MQTT:").grid(row=4, column=0, sticky="w", padx=5, pady=2)
 entry_porta_mqtt = tk.Entry(frame_mqtt, width=10)
@@ -108,13 +113,13 @@ chk_qos = tk.Checkbutton(frame_mqtt, text="Habilitar QoS 1", variable=var_qos)
 chk_qos.grid(row=7, column=0, columnspan=2, sticky="w", padx=5, pady=2)
 
 # 2. Tempo entre pacotes
-frame_tempo = tk.LabelFrame(root, text=" 2. Tempo entre Pacotes ", font=("Arial", 10, "bold"))
+frame_tempo = tk.LabelFrame(root, text=" 2. Tempo entre Pacotes [s] ", font=("Arial", 10, "bold"))
 frame_tempo.pack(fill="x", padx=15, pady=5)
 
 entry_tempo = tk.Entry(frame_tempo, font=("Arial", 10), width=10)
 entry_tempo.insert(0, "1.5")
 entry_tempo.pack(side="left", padx=10, pady=8)
-tk.Label(frame_tempo, text="segundos").pack(side="left")
+tk.Label(frame_tempo, text="[s]").pack(side="left")
 
 tk.Button(frame_tempo, text="Long Distance (6s)", bg="#d9fdd3", command=set_long_distance).pack(side="right", padx=5)
 tk.Button(frame_tempo, text="Short Distance (1.5s)", bg="#d0e1fd", command=set_short_distance).pack(side="right", padx=5)
@@ -131,20 +136,18 @@ entry_medidas.pack(side="left", padx=10, pady=8)
 frame_botoes = tk.LabelFrame(root, text=" 4. Comandos de Execução ", font=("Arial", 10, "bold"))
 frame_botoes.pack(fill="x", padx=15, pady=10)
 
-btn_i = tk.Button(frame_botoes, text="INICIAR", bg="green", fg="white", font=("Arial", 9, "bold"), width=8, command=btn_iniciar)
+btn_i = tk.Button(frame_botoes, text="INICIAR", bg="green", fg="white", font=("Arial", 9, "bold"), width=9, command=btn_iniciar)
 btn_i.grid(row=0, column=0, padx=5, pady=8)
 
-btn_p = tk.Button(frame_botoes, text="PAUSAR", bg="orange", fg="white", font=("Arial", 9, "bold"), width=8, command=btn_pausar)
+btn_p = tk.Button(frame_botoes, text="PAUSAR", bg="orange", fg="white", font=("Arial", 9, "bold"), width=9, command=btn_pausar)
 btn_p.grid(row=0, column=1, padx=5, pady=8)
 
-btn_s = tk.Button(frame_botoes, text="PARAR", bg="red", fg="white", font=("Arial", 9, "bold"), width=8, command=btn_parar)
+btn_s = tk.Button(frame_botoes, text="PARAR", bg="red", fg="white", font=("Arial", 9, "bold"), width=9, command=btn_parar)
 btn_s.grid(row=0, column=2, padx=5, pady=8)
 
 btn_att = tk.Button(frame_botoes, text="ATUALIZAR", bg="blue", fg="white", font=("Arial", 9, "bold"), width=9, command=btn_atualizar)
 btn_att.grid(row=0, column=3, padx=5, pady=8)
 
-btn_config_mqtt = tk.Button(frame_botoes, text="CONFIGURAR MQTT", bg="yellow", fg="black", font=("Arial", 9, "bold"), command=configurar_mqtt)
-btn_config_mqtt.grid(row=0, column=4, columnspan=2, pady=5)
 
 # Status Atual na Tela
 frame_status = tk.Frame(root)
