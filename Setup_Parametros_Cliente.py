@@ -34,7 +34,7 @@ def salvar_limiar():
     with open(caminho_cliente, "w") as f:
         f.write(str(limiar) + "\n")
     
-    limiar_desligar = min(LIMIAR_MAX, limiar + 200)
+    limiar_desligar = min(LIMIAR_MAX, limiar + 50)
     status.config(text=f"Ligar: {limiar} | Desligar: {limiar_desligar} salvo")
     print(f"Limpar Ligar: {limiar}, Desligar: {limiar_desligar} salvo em: {caminho_cliente}")
 
@@ -43,15 +43,15 @@ def slider_mudou(valor):
     entrada_limiar.delete(0, tk.END)
     entrada_limiar.insert(0, str(val_int))
     # Atualiza o label do segundo limiar dinamicamente
-    limiar_desl = min(LIMIAR_MAX, val_int + 200)
-    label_histerese.config(text=f"Limiar de Desligar (+200): {limiar_desl}")
+    limiar_desl = min(LIMIAR_MAX, val_int + 50)
+    label_histerese.config(text=f"Limiar de Desligar (+50): {limiar_desl}")
 
 def entrada_mudou(event=None):
     try:
         val_int = int(entrada_limiar.get().strip())
         escala.set(val_int)
         limiar_desl = min(LIMIAR_MAX, val_int + 200)
-        label_histerese.config(text=f"Limiar de Desligar (+200): {limiar_desl}")
+        label_histerese.config(text=f"Limiar de Desligar (+50): {limiar_desl}")
     except ValueError:
         pass
 
@@ -72,8 +72,8 @@ entrada_limiar.pack(pady=5)
 entrada_limiar.bind("<Return>", entrada_mudou)
 entrada_limiar.bind("<FocusOut>", entrada_mudou)
 
-# Label informativo para o segundo limiar (histerese de +200)
-label_histerese = tk.Label(janela, text="Limiar de Desligar (+200): --", font=("Arial", 9, "bold"), fg="darkred")
+# Label informativo para o segundo limiar (histerese de +50)
+label_histerese = tk.Label(janela, text="Limiar de Desligar (+50): --", font=("Arial", 9, "bold"), fg="darkred")
 label_histerese.pack(pady=5)
 
 limiar_inicial = carregar_limiar()

@@ -65,11 +65,11 @@ def atualizar_grafico(ax1, canvas, raiz, label_lum, label_media, label_limiar, l
     except FileNotFoundError:
         pass
 
-    # Lendo Limiares (Calculando o segundo limiar 200 pontos acima)
+    # Lendo Limiares (Calculando o segundo limiar 50 pontos acima)
     try:
         with open(caminho_par_cliente, 'r') as f:
             limiar_ligar = int(float(f.readline().strip().replace(",", ".")))
-            limiar_desligar = min(4095, limiar_ligar + 200)
+            limiar_desligar = min(4095, limiar_ligar + 50)
     except (FileNotFoundError, ValueError):
         pass
 
