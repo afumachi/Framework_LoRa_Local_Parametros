@@ -14,7 +14,7 @@ void Phy_radio_receive_DL() {
 
       RSSI_dBm_DL = LoRa.packetRssi(); // Faz a leitura da RSSI medida pelo RFM95 em dBm
       SNR_DL = LoRa.packetSnr();       // Faz a leitura da SNR medida pelo RFM95
-
+      Serial.println("[PHY] Pacote DL recebido via LoRa.");
       delay(50);
       digitalWrite(LED_VERDE_PIN, LOW);
 
@@ -66,7 +66,7 @@ void Phy_radio_send_UL() {
     LoRa.write(PacoteUL[i]);          // Envia byte a byte as informações para o RFM95
   }
   LoRa.endPacket();                   // Finaliza o envio do pacote e o RFM95 transmite o pacote para o Gateway
-  
+  Serial.println("[PHY] Pacote UL transmitido via LoRa.");
   delay(20);
   digitalWrite(LED_VERMELHO_PIN, LOW);
 

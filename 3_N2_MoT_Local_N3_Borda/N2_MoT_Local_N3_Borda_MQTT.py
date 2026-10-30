@@ -20,8 +20,8 @@ global broker_mqtt, porta_broker, topico_mqtt_dl, topico_mqtt_ul, qos_mqtt
 # ===== Configurações Padrão MQTT (Serão sobrescritas via MQTT.txt) =====
 BROKER        = "www.tpm.dev.br"
 PORTA_MQTT    = 1883
-TOPIC_DL      = "mot_mqtt_2904/gateway/downlink"
-TOPIC_UL      = "mot_mqtt_2904/gateway/uplink"
+TOPIC_DL      = "mot_mqtt_SEU_RA/gateway/downlink"
+TOPIC_UL      = "mot_mqtt_SEU_RA/gateway/uplink"
 MQTT_QOS      = 1
 
 estado_mqtt = 0
