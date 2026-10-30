@@ -2,14 +2,12 @@
 //====== COMANDOS
 void App_radio_receive_DL() {
 
-    // Acionamento do LED amarelo se o byte 34 está com valor 1
+    // Acionamento do LED amarelo se o byte 16 está com valor 1
     if (PacoteDL[16] == 1){
       liga_led_amarelo = 1;
-      //
     }
     else if(PacoteDL[16] == 0) {
       liga_led_amarelo = 0;
-      //digitalWrite(LED_AMARELO_PIN, LOW);
     }
     if (liga_led_amarelo == 1){
       digitalWrite(LED_AMARELO_PIN, HIGH);
@@ -34,7 +32,7 @@ void App_radio_send_UL() {
   
   luminosidade = analogRead(LDR_PIN); // Leitura da luminosidade no LDR_PIN que é o pino 36 do ESP32
   
-  PacoteUL[16] = PacoteDL[16]; // Aqui vai o feedback do comando do Led Amarelo
+  PacoteUL[16] = liga_led_amarelo; // Aqui vai o feedback do comando do Led Amarelo
   PacoteUL[17] = 1; // Aqui vai um código do tipo de hardware PK-LoRa v31, que no caso é a PK-LoRa código 1
   
   // O ESP32 possui conversor analógico de 12 bits (0 a 4095). 

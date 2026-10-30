@@ -1,6 +1,6 @@
 1
-1000
-1.5
+2000
+4
 www.tpm.dev.br
 1883
 mot_mqtt_AAF/gateway/downlink

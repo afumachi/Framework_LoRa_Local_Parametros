@@ -64,7 +64,7 @@ def set_short_distance():
 
 def set_long_distance():
     entry_tempo.delete(0, tk.END)
-    entry_tempo.insert(0, "6")
+    entry_tempo.insert(0, "4.5")
 
 # ================= INTERFACE GRÁFICA =================
 root = tk.Tk()
@@ -117,11 +117,11 @@ frame_tempo = tk.LabelFrame(root, text=" 2. Tempo entre Pacotes [s] ", font=("Ar
 frame_tempo.pack(fill="x", padx=15, pady=5)
 
 entry_tempo = tk.Entry(frame_tempo, font=("Arial", 10), width=10)
-entry_tempo.insert(0, "1.5")
+entry_tempo.insert(0, "4.5")
 entry_tempo.pack(side="left", padx=10, pady=8)
 tk.Label(frame_tempo, text="[s]").pack(side="left")
 
-tk.Button(frame_tempo, text="Long Distance (6s)", bg="#d9fdd3", command=set_long_distance).pack(side="right", padx=5)
+tk.Button(frame_tempo, text="Long Distance (4.5s)", bg="#d9fdd3", command=set_long_distance).pack(side="right", padx=5)
 tk.Button(frame_tempo, text="Short Distance (1.5s)", bg="#d0e1fd", command=set_short_distance).pack(side="right", padx=5)
 
 # 3. Número de medidas

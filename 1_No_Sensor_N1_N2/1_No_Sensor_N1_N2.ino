@@ -9,7 +9,7 @@
 
 // Escolha qual o modelo do módulo de processamento de sua PKLoRa
 #define PKLoRa_ESP32
-//#define PKLoRa_ESP12E
+//#define PKLoRa_ESP12E //Node-MCU
 
 //=======================================================================
 //                     1 - Bibliotecas
@@ -65,9 +65,9 @@
 // Parâmetros do LoRa
 #define FREQUENCY_IN_HZ       903E6     // Frequência de operação
 #define txPower               17        // Potência de transmissão 17 dBm
-#define spreadingFactor       7        // Configuração SRC = 7     |  LRC=12
-#define signalBandwidth       500E3    // Configuração SRC = 500E3  |  LRC=125E3
-#define codingRateDenominator 5         // Configuração SRC = 5     |  LRC=8 
+#define spreadingFactor       12        // Configuração SRC = 7     |  LRC=12
+#define signalBandwidth       125E3    // Configuração SRC = 500E3  |  LRC=125E3
+#define codingRateDenominator 8         // Configuração SRC = 5     |  LRC=8 
 
 // Váriáveis utilizadas no código
 int RSSI_dBm_DL; // Variável com a potência rádio recebida (RSSI) em dBm
@@ -82,14 +82,14 @@ byte PacoteUL[Tamanho_pacote];
 
 // ============= CAMADA DE REDE
 // Identificação do sensor e tamanho de pacote
-int ID_sensor = 1; // Variável de iIdentificação do sensor que está no pacote de DL byte 8
-int ID_gateway;    // Variável com o ID_gateway que estará no pacote de DL byte 10
+uint8_t ID_sensor = 1; // Variável de iIdentificação do sensor que está no pacote de DL byte 8
+uint8_t ID_gateway;    // Variável com o ID_gateway que estará no pacote de DL byte 10
 
 // ============== CAMADA DE TRANSPORTE
-int contador_pkt_DL = 0; // Variável para o contador de pacotes de DL
-int contador_pkt_UL = 0; // Variável para o contador de pacotes de UL
+uint16_t contador_pkt_DL = 0; // Variável para o contador de pacotes de DL
+uint16_t contador_pkt_UL = 0; // Variável para o contador de pacotes de UL
 
-int luminosidade; // Variável que vai receber o valor da luminosidade entre 0 e 4095 - ADC 12 bits
+uint8_t luminosidade; // Variável que vai receber o valor da luminosidade entre 0 e 4095 - ADC 12 bits
 bool liga_led_amarelo = 0;
 
 //=======================================================================
@@ -97,7 +97,7 @@ bool liga_led_amarelo = 0;
 //=======================================================================
 void setup() {
   Serial.begin(115200);
-  //while (!Serial);
+  delay(20);
 
   Serial.println("--- Iniciando Nó Sensor ---");
 
@@ -116,7 +116,6 @@ void setup() {
 
   // --- Inicialização Módulo RF95 (LoRa) ---
   #if defined(PKLoRa_ESP32)
-
     // 1. Remapeia e inicializa o barramento SPI com os pinos do seu Kit
     SPI.begin(SCK_PIN, MISO_PIN, MOSI_PIN, NSS_PIN);
   #endif
@@ -127,7 +126,7 @@ void setup() {
   if (!LoRa.begin(FREQUENCY_IN_HZ)) {
     Serial.println("Erro ao iniciar módulo RFM95");
   }
-  //LoRa.begin(FREQUENCY_IN_HZ));
+
   LoRa.setTxPower(txPower);
   LoRa.setSpreadingFactor(spreadingFactor);
   LoRa.setSignalBandwidth(signalBandwidth);

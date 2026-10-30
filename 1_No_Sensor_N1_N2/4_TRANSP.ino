@@ -2,7 +2,8 @@
 void Transp_radio_receive_DL() { 
   // Faz o controle fluzo entre o nó sensor e o gateway
   // Por exemplo contagem de pacotes recedidos de DL
-  contador_pkt_DL = contador_pkt_DL + 1;
+  contador_pkt_DL = 256*(int(PacoteDL[12])) + int(PacoteDL[13]); //contador_pkt_DL + 1;
+  Serial.println(contador_pkt_DL);
 
   //============== CHAMA A CAMADA DE APLICAÇÃO DE DL
   App_radio_receive_DL();

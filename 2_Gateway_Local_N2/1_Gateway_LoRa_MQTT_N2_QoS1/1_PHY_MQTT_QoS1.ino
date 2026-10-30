@@ -75,7 +75,7 @@ void Phy_radio_receive_UL() {
       RSSI_dBm_UL = LoRa.packetRssi();
       SNR_UL      = LoRa.packetSnr();
 
-      delay(50);
+      delay(30);
       digitalWrite(LED_VERDE_PIN, LOW);
 
       // Chama função de envio UL agora via MQTT

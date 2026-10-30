@@ -298,7 +298,7 @@ try:
                 
                 downlink()
 
-                time.sleep(tempo_entre_pacotes)
+                time.sleep(0.5)#(tempo_entre_pacotes)
                 pacote_recebido = 0
                 uplink()
                 #print("Pacote Recebido: ", pacote_recebido)
@@ -343,6 +343,7 @@ try:
                       Log_dados.flush()
 
                 Tempo_gasto = time.time() - Tempo_inicio_pacote
+                print('Tempo Entre Pacotes = ', Tempo_gasto)
 
              elif (medida_atual >= num_medidas):       
                  # Término natural das medições: Salva os parâmetros com comando 0 mantendo as 8 variáveis

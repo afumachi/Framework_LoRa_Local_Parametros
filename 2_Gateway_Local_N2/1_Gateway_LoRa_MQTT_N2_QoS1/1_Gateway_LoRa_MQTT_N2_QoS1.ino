@@ -51,8 +51,8 @@ const char* MQTT_BROKER   = "www.tpm.dev.br";
 
 
 const int   MQTT_PORT     = 1883;
-const char* TOPIC_DL      = "mot_mqtt_AAF/gateway/downlink";  // Python → ESP32
-const char* TOPIC_UL      = "mot_mqtt_AAF/gateway/uplink";    // ESP32  → Python
+const char* TOPIC_DL      = "mot_mqtt_194104/gateway/downlink";  // Python → ESP32
+const char* TOPIC_UL      = "mot_mqtt_194104/gateway/uplink";    // ESP32  → Python
 String CLIENT_ID ;         // ID único no broker através do Endereço MAC do ESP32
 
 // QoS usado nos dois sentidos (DL e UL). QoS1 = "at least once": o broker
@@ -63,7 +63,15 @@ const int MQTT_QOS = 1;
 // --- Objeto MQTT ---
 MQTTClient mqttClient(256);   // buffer de 256 bytes (read/write)
 
+void wifi_mqtt(){
+  // Cadastre quantas redes você quiser (SSID, Senha)
+  wifiMulti.addAP("COLETTI_ADV_CRIS", "45384609");
+  wifiMulti.addAP("MJCA_FUNDOS", "21092429MJC@");
+	wifiMulti.addAP("aafwifi", "aaf12345678");
+	wifiMulti.addAP("CHACARA BBC", "Ailton1960#");
+	wifiMulti.addAP("Claro-EB66", "54b80a7deb66");
 
+}
 // =====================================================================
 //                     4 - Pinagem RFM95 (Kit PKLORa)
 // =====================================================================
@@ -79,9 +87,9 @@ MQTTClient mqttClient(256);   // buffer de 256 bytes (read/write)
 // =====================================================================
 #define FREQUENCY_IN_HZ       903E6
 #define txPower               17
-#define spreadingFactor       7
-#define signalBandwidth       500E3
-#define codingRateDenominator 5
+#define spreadingFactor       12
+#define signalBandwidth       125E3
+#define codingRateDenominator 8
 
 // =====================================================================
 //                     6 - Pinos de LED
@@ -118,14 +126,7 @@ void setup() {
   Serial.begin(115200);
   // Aguarda para estabilização da Serial
   delay(20);
-
-  // Cadastre quantas redes você quiser (SSID, Senha)
-  wifiMulti.addAP("COLETTI_ADV_CRIS", "45384609");
-  wifiMulti.addAP("MJCA_FUNDOS", "21092429MJC@");
-	wifiMulti.addAP("aafwifi", "aaf12345678");
-	wifiMulti.addAP("CHACARA BBC", "Ailton1960#");
-	wifiMulti.addAP("Claro-EB66", "54b80a7deb66");
-
+  wifi_mqtt();
   // O wifiMulti.run() tenta conectar a uma das redes cadastradas
   // Ele retorna WL_CONNECTED quando consegue se conectar com sucesso
   while (wifiMulti.run() != WL_CONNECTED) {
